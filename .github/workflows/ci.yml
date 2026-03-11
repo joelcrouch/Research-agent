@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Lint (ruff)
+        run: ruff check .
+
+      - name: Format check (ruff)
+        run: ruff format --check .
+
+      - name: Type check (mypy)
+        run: mypy agent/ config/ schemas/ scripts/
+        # Schemas and eval dirs are empty in Sprint 0 — mypy will skip them gracefully
+
+      - name: Unit tests (no integration tests)
+        env:
+          # Fake keys so Settings doesn't fail — conftest.py patches them anyway
+          ANTHROPIC_API_KEY: ci-placeholder-not-a-real-key
+          LANGSMITH_API_KEY: ci-placeholder-not-a-real-key
+        run: pytest -m "not integration" -v --tb=short

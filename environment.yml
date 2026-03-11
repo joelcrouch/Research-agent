@@ -1,0 +1,12 @@
+name: research-agent
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - numpy>=1.26
+
+  # ── GPU support (uncomment when needed) ───────────────────────────────────
+  # - pytorch::pytorch
+  # - pytorch::pytorch-cuda=12.1
+  # - cudatoolkit=12.1
