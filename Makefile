@@ -86,6 +86,12 @@ test-all:
 .PHONY: ci
 ci: lint typecheck test
 
+# Use this before pushing to ensure everything is perfect
+.PHONY: ready
+ready: format lint typecheck test
+	@echo ""
+	@echo "✅ All checks passed! You are ready to push."
+
 # ── Clean ─────────────────────────────────────────────────────────────────────
 .PHONY: clean
 clean:
