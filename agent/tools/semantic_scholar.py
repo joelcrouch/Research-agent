@@ -1,6 +1,7 @@
+from typing import Any, cast
+
 import httpx
 import structlog
-from typing import Any, cast
 
 from schemas.paper import Paper
 

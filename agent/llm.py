@@ -1,6 +1,8 @@
 from langchain_core.language_models import BaseChatModel
 from pydantic import SecretStr
+
 from config.settings import settings
+
 
 def get_llm() -> BaseChatModel:
     s=settings()

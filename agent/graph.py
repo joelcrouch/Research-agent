@@ -2,7 +2,7 @@ import json
 import uuid
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Any, cast
+from typing import cast
 
 import structlog
 from langgraph.graph import END, START, StateGraph

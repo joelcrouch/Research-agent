@@ -1,22 +1,22 @@
-import time
 import json
+import time
 from datetime import UTC, datetime
-from typing import List, Literal, Any, cast
+from typing import Any, Literal, cast
 
 import structlog
+from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage, ToolMessage
 from pydantic import BaseModel, Field
-from langchain_core.messages import SystemMessage, HumanMessage, AIMessage, BaseMessage, ToolMessage
 
 from agent.llm import get_llm
 from agent.state import AgentState, TraceEntry
-from agent.tools import TOOLS, deduplicate, rank_papers, _search_arxiv, _get_citation_count
+from agent.tools import TOOLS, _get_citation_count, _search_arxiv, deduplicate, rank_papers
 from schemas.paper import Paper
 
 log = structlog.get_logger(__name__)
 
 class PlannerOutput(BaseModel):
     """Structured plan from the LLM."""
-    search_terms: List[str] = Field(description="Core search terms.")
+    search_terms: list[str] = Field(description="Core search terms.")
     date_from: str = Field(description="Start date (YYYY-MM-DD).")
     date_to: str = Field(description="End date (YYYY-MM-DD).")
     top_k: int = Field(description="Number of papers.")
@@ -88,7 +88,7 @@ def call_model(state: AgentState) -> dict[str, Any]:
     ))
     
     # LangChain messages concatenation requires a list of BaseMessage
-    messages: List[BaseMessage] = [cast(BaseMessage, system_msg)] + list(state["messages"])
+    messages: list[BaseMessage] = [cast(BaseMessage, system_msg)] + list(state["messages"])
     response = llm.invoke(messages)
     
     # Check for tool calls on the response
@@ -104,7 +104,7 @@ def tool_node(state: AgentState) -> dict[str, Any]:
     last_msg = cast(AIMessage, state["messages"][-1])
     
     new_messages = []
-    found_papers: List[Paper] = list(state.get("papers", []))
+    found_papers: list[Paper] = list(state.get("papers", []))
     
     if hasattr(last_msg, "tool_calls"):
         for tool_call in last_msg.tool_calls:
@@ -142,9 +142,10 @@ def tool_node(state: AgentState) -> dict[str, Any]:
 
 # ── Node 4: Responder ──────────────────────────────────────────────────────────
 def responder(state: AgentState) -> dict[str, Any]:
-    from rich.table import Table
-    from rich.console import Console
     import io
+
+    from rich.console import Console
+    from rich.table import Table
 
     start = time.monotonic()
     log.info("responder.enter")
