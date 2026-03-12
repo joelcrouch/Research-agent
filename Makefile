@@ -50,7 +50,7 @@ update:
 .PHONY: run
 run:
 	$(CHECK_ENV)
-	python scripts/run_agent.py --query $(QUERY)
+	python scripts/run_agent.py --query "$(QUERY)"
 
 # ── Lint ──────────────────────────────────────────────────────────────────────
 .PHONY: lint
