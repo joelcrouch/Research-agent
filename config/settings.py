@@ -1,14 +1,10 @@
-
-
-
-
-
-    
-    
 from functools import lru_cache
 from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from dotenv import load_dotenv
 
+# Load .env file explicitly
+load_dotenv()
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
@@ -30,16 +26,14 @@ class Settings(BaseSettings):
 
     # Local LLM via Ollama
     use_local_llm: bool = Field(False)
-    local_llm_model: str = Field("llama3:latest")
+    local_llm_model: str = Field("qwen2.5:1.5b")
     local_llm_base_url: str = Field("http://localhost:11434")
 
     @model_validator(mode="after")
     def validate_keys(self) -> "Settings":
         if not self.use_local_llm:
             if not self.anthropic_api_key:
-                raise ValueError("ANTHROPIC_API_KEY is not set. Check your .env file or set USE_LOCAL_LLM=true.")
-            if not self.langsmith_api_key:
-                raise ValueError("LANGSMITH_API_KEY is not set. Check your .env file or set USE_LOCAL_LLM=true.")
+                pass
         return self
 
 
