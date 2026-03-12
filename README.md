@@ -62,7 +62,7 @@ make run QUERY="CRISPR gene editing"
 | Sprint | Goal | Status |
 | :--- | :--- | :--- |
 | **Sprint 0** | **Foundation: Repo Setup, Scaffolding, Hello-World Agent** | **Done** |
-| Sprint 1 | Core Agent and Tools: ArXiv + Semantic Scholar | Planned |
+| Sprint 1 | Core Agent and Tools: ArXiv + Semantic Scholar | **Done** |
 | Sprint 2 | Multi-Source and Planning: PubMed + Parallel Execution | Planned |
 | Sprint 3 | Summarization and Research Brief | Planned |
 | Sprint 4 | Evaluation Framework | Planned |
