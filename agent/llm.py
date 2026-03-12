@@ -1,4 +1,5 @@
 from langchain_core.language_models import BaseChatModel
+from pydantic import SecretStr
 from config.settings import settings
 
 def get_llm() -> BaseChatModel:
@@ -11,8 +12,8 @@ def get_llm() -> BaseChatModel:
         )
     else: 
         from langchain_anthropic import ChatAnthropic
-        return ChatAnthropic(
-            model="claude-sonnet-4-20250514",
-            api_key=s.anthropic_api_key,
+        return ChatAnthropic(  # type: ignore[call-arg]
+            model_name="claude-3-5-sonnet-20240620",
+            api_key=SecretStr(s.anthropic_api_key),
         )
 

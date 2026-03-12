@@ -5,63 +5,83 @@ Sprint 1 smoke tests.
 Verifies the agentic ReAct graph compiles and runs.
 """
 
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
+from langchain_core.messages import AIMessage
+
 from agent.graph import run
 from agent.nodes import PlannerOutput
 from schemas.paper import Paper
-from langchain_core.messages import AIMessage
+
 
 @pytest.fixture(autouse=True)
 def mock_external_deps():
     """Globally mock LLM and tools for graph tests."""
-    with patch("agent.nodes.get_llm") as mock_get_llm, \
-         patch("agent.nodes._search_arxiv") as mock_search, \
-         patch("agent.nodes._get_citation_count") as mock_enrich:
-        
+    with (
+        patch("agent.nodes.get_llm") as mock_get_llm,
+        patch("agent.nodes._search_arxiv") as mock_search,
+        patch("agent.nodes._get_citation_count") as mock_enrich,
+    ):
         # Mock LLM
         mock_llm = MagicMock()
         mock_structured = MagicMock()
         mock_get_llm.return_value = mock_llm
-        
+
         # Planner mock
         mock_llm.with_structured_output.return_value = mock_structured
         mock_structured.invoke.return_value = PlannerOutput(
-            search_terms=["test term"],
-            date_from="2020-01-01",
-            date_to="2025-01-01",
-            top_k=5
+            search_terms=["test term"], date_from="2020-01-01", date_to="2025-01-01", top_k=5
         )
-        
+
         # Agent mock: Use REAL AIMessage objects, not mocks
         msg_with_tools = AIMessage(
-            content="", 
-            tool_calls=[{
-                "name": "search_arxiv",
-                "args": {"query": "test term", "max_results": 5, "date_from": "2020-01-01", "date_to": "2025-01-01"},
-                "id": "call_1"
-            }]
+            content="",
+            tool_calls=[
+                {
+                    "name": "search_arxiv",
+                    "args": {
+                        "query": "test term",
+                        "max_results": 5,
+                        "date_from": "2020-01-01",
+                        "date_to": "2025-01-01",
+                    },
+                    "id": "call_1",
+                }
+            ],
         )
         msg_final = AIMessage(content="I have found the papers.")
-        
+
         # Crucial: bind_tools must return the mock_llm itself
         mock_llm.bind_tools.return_value = mock_llm
         mock_llm.invoke.side_effect = [msg_with_tools, msg_final]
-        
+
         # Mock ArXiv
         mock_search.return_value = [
-            Paper(title="Test Paper", author=[], abstract=None, year=2020, arxiv_id="1", 
-                  pubmed_id=None, doi=None, semantic_scholar_id=None, 
-                  citation_count=None, source="arxiv", url="url")
+            Paper(
+                title="Test Paper",
+                author=[],
+                abstract=None,
+                year=2020,
+                arxiv_id="1",
+                pubmed_id=None,
+                doi=None,
+                semantic_scholar_id=None,
+                citation_count=None,
+                source="arxiv",
+                url="url",
+            )
         ]
-        
+
         # Mock enrichment
         def side_effect(p):
             p.citation_count = 10
             return p
+
         mock_enrich.side_effect = side_effect
-        
+
         yield
+
 
 class TestGraphSmoke:
     def test_run_returns_agent_state(self):

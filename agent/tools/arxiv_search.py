@@ -1,15 +1,17 @@
+from datetime import UTC, datetime
+
 import arxiv
 import structlog
-from datetime import datetime, UTC
-from typing import List, Optional
+
 from schemas.paper import Paper
 
 log = structlog.get_logger(__name__)
 
-def parse_date(date_str: Optional[str]) -> Optional[datetime]:
+
+def parse_date(date_str: str | None) -> datetime | None:
     """
     Parse date string in YYYY-MM-DD format to aware datetime.
-    Returns None if parsing fails, allowing the caller to decide 
+    Returns None if parsing fails, allowing the caller to decide
     whether to ignore the filter or fail.
     """
     if not date_str:
@@ -25,7 +27,10 @@ def parse_date(date_str: Optional[str]) -> Optional[datetime]:
     log.warning("arxiv.search.invalid_date_format", provided=date_str, expected="YYYY-MM-DD")
     return None
 
-def search_arxiv(query: str, max_results: int = 10, date_from: Optional[str] = None, date_to: Optional[str] = None) -> List[Paper]:
+
+def search_arxiv(
+    query: str, max_results: int = 10, date_from: str | None = None, date_to: str | None = None
+) -> list[Paper]:
     """
     Search ArXiv for papers and return a list of Paper dataclasses.
     """
@@ -49,13 +54,19 @@ def search_arxiv(query: str, max_results: int = 10, date_from: Optional[str] = N
 
         search = arxiv.Search(
             query=query,
-            max_results=max_res * 5, # Fetch more to account for date filtering
-            sort_by=arxiv.SortCriterion.Relevance
+            max_results=max_res * 5,  # Fetch more to account for date filtering
+            sort_by=arxiv.SortCriterion.Relevance,
         )
 
-        papers: List[Paper] = []
+        papers: list[Paper] = []
 
-        log.info("arxiv.search.start", query=query, max_results=max_res, date_from=date_from, date_to=date_to)
+        log.info(
+            "arxiv.search.start",
+            query=query,
+            max_results=max_res,
+            date_from=date_from,
+            date_to=date_to,
+        )
 
         results_iter = client.results(search)
         found_any = False
@@ -74,22 +85,30 @@ def search_arxiv(query: str, max_results: int = 10, date_from: Optional[str] = N
                 author=[author.name for author in result.authors],
                 abstract=result.summary,
                 year=result.published.year,
-                arxiv_id=result.get_short_id().split('v')[0],
+                arxiv_id=result.get_short_id().split("v")[0],
                 pubmed_id=None,
                 doi=result.doi,
                 semantic_scholar_id=None,
                 citation_count=None,
                 source="arxiv",
-                url=result.entry_id
+                url=result.entry_id,
             )
             papers.append(paper)
 
             if len(papers) >= max_res:
                 break
         if not found_any:
-             log.info("arxiv.search.no_results", query=query, msg="API returned zero results for this query.")
+            log.info(
+                "arxiv.search.no_results",
+                query=query,
+                msg="API returned zero results for this query.",
+            )
         elif not papers and found_any:
-             log.info("arxiv.search.filtered_to_zero", query=query, msg="Results were found but all were filtered out by date range.")
+            log.info(
+                "arxiv.search.filtered_to_zero",
+                query=query,
+                msg="Results were found but all were filtered out by date range.",
+            )
 
         log.info("arxiv.search.complete", count=len(papers))
         return papers

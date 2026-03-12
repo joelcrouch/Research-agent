@@ -1,8 +1,10 @@
 import time
+
 import pytest
+
 from agent.tools.arxiv_search import search_arxiv
 from agent.tools.semantic_scholar import get_citation_count
-from schemas.paper import Paper
+
 
 @pytest.mark.integration
 def test_arxiv_to_semantic_scholar_chain():
@@ -14,7 +16,7 @@ def test_arxiv_to_semantic_scholar_chain():
     # Using 'The "Nature" of Programming' - a specific title that should yield one result
     query = 'ti:"The Nature of Programming"'
     papers = search_arxiv(query, max_results=1)
-    
+
     if not papers:
         # Fallback if that one is gone
         papers = search_arxiv("Llama-3", max_results=1)
@@ -23,7 +25,7 @@ def test_arxiv_to_semantic_scholar_chain():
     original_paper = papers[0]
     assert original_paper.source == "arxiv"
     assert original_paper.arxiv_id is not None
-    assert original_paper.citation_count is None # Should be None initially
+    assert original_paper.citation_count is None  # Should be None initially
 
     # Extra sleep to cooldown from previous 429s
     time.sleep(2.0)
@@ -34,7 +36,7 @@ def test_arxiv_to_semantic_scholar_chain():
     # 3. Verify Enrichment
     assert enriched_paper.title == original_paper.title
     assert enriched_paper.arxiv_id == original_paper.arxiv_id
-    
+
     # We allow the test to pass if we hit a 429, but we log it.
     # In a real environment, we'd wait, but here we want to see if the mapping works.
     if enriched_paper.citation_count is None:

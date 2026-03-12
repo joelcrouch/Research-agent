@@ -1,8 +1,11 @@
-import pytest
+from datetime import UTC, datetime
 from unittest.mock import MagicMock, patch
-from datetime import datetime, UTC
+
+import pytest
+
 from agent.tools.arxiv_search import search_arxiv
 from schemas.paper import Paper
+
 
 class TestArxivSearchUnit:
     """Unit tests for search_arxiv using mocks."""
@@ -41,7 +44,7 @@ class TestArxivSearchUnit:
     def test_search_arxiv_error_handling(self, mock_results):
         """Verify that exceptions are caught and return an empty list."""
         mock_results.side_effect = Exception("API Failure")
-        
+
         papers = search_arxiv("test query")
         assert papers == []
 
@@ -51,7 +54,7 @@ class TestArxivSearchUnit:
         # Result 1: Old
         res1 = MagicMock()
         res1.published = datetime(2020, 1, 1, tzinfo=UTC)
-        
+
         # Result 2: New
         res2 = MagicMock()
         res2.published = datetime(2024, 1, 1, tzinfo=UTC)
@@ -66,7 +69,7 @@ class TestArxivSearchUnit:
 
         # Search for papers from 2023 onwards
         papers = search_arxiv("test", date_from="2023-01-01")
-        
+
         assert len(papers) == 1
         assert papers[0].title == "New Paper"
 
@@ -86,9 +89,9 @@ class TestArxivSearchUnit:
         res1.doi = None
         res1.entry_id = "url"
         res1.summary = "summary"
-        
+
         mock_results.return_value = [res1]
-        
+
         # Should ignore the invalid date filter and return the paper
         papers = search_arxiv("test", date_from="not-a-date")
         assert len(papers) == 1
@@ -140,6 +143,7 @@ class TestArxivSearchUnit:
         papers = search_arxiv("test", date_from="2024-01-01")
         assert papers == []
 
+
 class TestArxivSearchIntegration:
     """Integration tests with real API calls."""
 
@@ -147,14 +151,16 @@ class TestArxivSearchIntegration:
     def test_search_arxiv_real_call(self):
         """Test a real ArXiv search to verify end-to-end functionality."""
         papers = search_arxiv("long-term potentiation", max_results=2)
-        
+
         assert len(papers) > 0
         assert all(isinstance(p, Paper) for p in papers)
         assert all(p.source == "arxiv" for p in papers)
         # Check that we got something relevant
         found_match = False
         for p in papers:
-            if "potentiation" in p.title.lower() or (p.abstract and "potentiation" in p.abstract.lower()):
+            if "potentiation" in p.title.lower() or (
+                p.abstract and "potentiation" in p.abstract.lower()
+            ):
                 found_match = True
                 break
         assert found_match

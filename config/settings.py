@@ -1,10 +1,12 @@
 from functools import lru_cache
+
+from dotenv import load_dotenv
 from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from dotenv import load_dotenv
 
 # Load .env file explicitly
 load_dotenv()
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
@@ -31,9 +33,8 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_keys(self) -> "Settings":
-        if not self.use_local_llm:
-            if not self.anthropic_api_key:
-                pass
+        if not self.use_local_llm and not self.anthropic_api_key:
+            pass
         return self
 
 

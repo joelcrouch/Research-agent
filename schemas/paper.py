@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 
+
 @dataclass
-class Paper: 
+class Paper:
     title: str
     author: list[str]
     abstract: str | None
@@ -11,5 +12,5 @@ class Paper:
     doi: str | None
     semantic_scholar_id: str | None
     citation_count: int | None
-    source: str  #arxiv, pubmed semantic_scholar
+    source: str  # arxiv, pubmed semantic_scholar
     url: str
